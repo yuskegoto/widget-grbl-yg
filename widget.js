@@ -74,6 +74,8 @@ cprequire_test(["inline:com-chilipeppr-widget-grbl"], function (grbl) {
     
     chilipeppr.publish("/com-chilipeppr-widget-serialport/recvSingleSelectPort",{BufferAlgorithm: "grbl"}); //error not grbl buffer
 
+    $('body').css('padding', '20px');
+    
 } /*end_test*/ );
 
 function Queue(){var e=[];var t=0;this.getLength=function(){return e.length-t};this.isEmpty=function(){return e.length==0};this.enqueue=function(t){e.push(t)};this.dequeue=function(){if(e.length==0)return undefined;var n=e[t];if(++t*2>=e.length){e=e.slice(t);t=0}return n};this.peek=function(){return e.length>0?e[t]:undefined};this.sum=function(){for(var t=0,n=0;t<e.length;n+=e[t++]);return n};this.last=function(){return e[e.length-1]}}
