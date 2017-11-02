@@ -731,7 +731,11 @@ cpdefine("inline:com-chilipeppr-widget-grbl", ["chilipeppr_ready", "jquerycookie
             
             var that = this;
             
-            chilipeppr.load("http://fiddle.jshell.net/chilipeppr/zMbL9/show/light/", function () {
+            // used to be
+            // "http://fiddle.jshell.net/chilipeppr/zMbL9/show/light/"
+            // but now using the github repo
+            // http://raw.githubusercontent.com/chilipeppr/widget-pubsubviewer/master/auto-generated-widget.html
+            chilipeppr.load("http://raw.githubusercontent.com/chilipeppr/widget-pubsubviewer/master/auto-generated-widget.html", function () {
                 require(['inline:com-chilipeppr-elem-pubsubviewer'], function (pubsubviewer) {
                     pubsubviewer.attachTo($('#com-chilipeppr-widget-grbl .panel-heading .dropdown-menu'), that);
                 });
