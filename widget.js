@@ -323,7 +323,7 @@ cpdefine("inline:com-chilipeppr-widget-grbl", ["chilipeppr_ready", "jquerycookie
                 $('#grbl-config-div').append(
                     '<div class="input-group" ' + 
                     'style="width:400px;margin-bottom:2px;"><div class="input-group-addon" style="width:40px;padding:0px 6px;">' + 
-                    '$' + 
+                    "$" + 
                     index_num + 
                     '</div><input class="form-control" style="height:20px;padding:0px 6px;width:100px;" id="com-chilipeppr-widget-grbl-config-' + 
                     index_num + 
