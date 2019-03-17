@@ -1,5 +1,4 @@
 // ChiliPeppr Runme.js
-// WORKSPACE EDITION
 
 // You should right-click and choose "Run" inside Cloud9 to run this
 // Node.js server script. Then choose "Preview" to load the main HTML page
@@ -14,6 +13,7 @@ var http = require('http'),
   url = require('url'),
   path = require('path'),
   fs = require('fs');
+var qs = require('querystring');
 
 var mimeTypes = {
   "html": "text/html",
@@ -25,10 +25,10 @@ var mimeTypes = {
 };
 
 http.createServer(function(req, res) {
-  
+
   var uri = url.parse(req.url).pathname;
   console.log("URL being requested:", uri);
-  
+
   if (uri == "/") {
 
     res.writeHead(200, {
@@ -39,13 +39,13 @@ http.createServer(function(req, res) {
     var htmlDocs = generateWidgetDocs();
     
     var notes = "";
-    notes += "<p>Click refresh to regenerate README.md, " + fileAutoGeneratePath + ", and push updates to Github.</p>";
+    notes += "<p>Click refresh to regenerate README.md, auto-generated-widget.html, and push updates to Github.</p>";
     generateWidgetReadme();
     notes += "<p>Generated a new README.md file...</p>";
     generateInlinedFile();
-    notes += "<p>Generated a new " + fileAutoGeneratePath + " file...</p>";
+    notes += "<p>Generated a new auto-generated-widget.html file...</p>";
     //pushToGithub();
-    // pushToGithubSync();
+    //pushToGithubSync();
     pushToGithubAsync();
     notes += "<p>Pushed updates to Github...</p>";
 
@@ -55,11 +55,61 @@ http.createServer(function(req, res) {
     res.end(finalHtml);
 
   } 
-  else if (uri == "/pushtogithub") {
+  else if (uri == "/uploadscreenshot") {
+    console.log("screenshot being uploaded. ");
     
+    if (req.method == 'POST') {
+        var body = '';
+        req.on('data', function (data) {
+            body += data;
+            // 1e6 === 1 * Math.pow(10, 6) === 1 * 1000000 ~~~ 1MB
+            if (body.length > 1e6) { 
+                // FLOOD ATTACK OR FAULTY CLIENT, NUKE REQUEST
+                req.connection.destroy();
+            }
+        });
+        req.on('end', function () {
+
+            //console.log("body:", body);
+            var POST = qs.parse(body);
+            // use POST
+            console.log("done with POST:", POST);
+            var data_url = POST.imgBase64;
+            var matches = data_url.match(/.*?;base64,(.*)$/);
+            //var ext = matches[1];
+            var base64_data = matches[1];
+            var buffer = new Buffer(base64_data, 'base64');
+            console.log("about to write file...");
+            
+            fs.writeFile("screenshot.png", buffer,  function (err) {
+                if (err) throw err;
+                
+                //res.send('success');
+                var json = {
+                  success: true,
+                  desc: "Saved screenshot.png",
+                  //log: stdout
+                }
+                
+                res.writeHead(200, {
+                  'Content-Type': 'application/json'
+                });
+                res.end(JSON.stringify(json));
+                console.log('done uploading screenshot');
+            });
+
+        });
+    }
+    
+  }
+  else if (uri == "/pushtogithub") {
+
+    var url_parts = url.parse(req.url,true);
+    console.log(url_parts.query);
+
     console.log("/pushtogithub called");
     
-    var stdout = pushToGithubSync()
+    var stdout = pushToGithubSync(url_parts.query.message)
     
     var json = {
       success: true,
@@ -155,59 +205,22 @@ http.createServer(function(req, res) {
     
   }
 
-// }).listen(process.env.PORT);
-}).listen(8080);
+}).listen(process.env.PORT);
 
 String.prototype.regexIndexOf = function(regex, startpos) {
     var indexOf = this.substring(startpos || 0).search(regex);
     return (indexOf >= 0) ? (indexOf + (startpos || 0)) : indexOf;
 }
 
-var fileAutoGeneratePath = "auto-generated-widget.html"
-var fileJsPath = "widget.js"
-var fileCssPath = "widget.css"
-var fileHtmlPath = "widget.html"
-
-
-// var widgetUrl = 'http://' +
-//     process.env.C9_PROJECT + '-' + process.env.C9_USER +
-//     '.c9users.io/workspace.html';
-// var testUrl = 'https://preview.c9users.io/' +
-//     process.env.C9_USER + '/' +
-//     process.env.C9_PROJECT + '/' + fileHtmlPath;
-// var testUrlNoSsl = 'http://' + process.env.C9_PROJECT +
-//     '-' + process.env.C9_USER + '.c9users.io/' + fileHtmlPath;
-// var editUrl = 'http://ide.c9.io/' +
-//     process.env.C9_USER + '/' +
-//     process.env.C9_PROJECT;
-
-/****** replaced cloud 9 related url temporary to the git url ********/
-// var gitUrl = getGithubUrl();
-// console.log(gitUrl);
-// var widgetUrl = gitUrl.rawurl.replace(/\/[\s\S]*$/i, "/" + fileHtmlPath);
-var widgetUrl = 'widgetUrl';
-// var testUrl = gitUrl.rawurl;
-var testUrl = 'secure test url';
-// var testUrlNoSsl = gitUrl.rawurl.replace(RegExp('https'), 'http');
-var testUrlNoSsl = 'Non secure test url';
-// var editUrl = gitUrl.url;
-var editUrl = 'editUrl';
-
-var github;
-
 var widgetSrc, widget, id, deps, cpdefine, requirejs, cprequire_test;
 var widgetDocs = {};
 
-var init = function() {
-  github = getGithubUrl();
-  widgetUrl = github.rawurl.replace(/\/[\s\S]*$/i, "/" + fileHtmlPath);
-  testUrl = github.rawurl;
-  testUrlNoSsl = github.rawurl.replace(RegExp('https'), 'http');
-  editUrl = github.url;
-}
-
+/**
+ * This method will actually eval your widget.js to bring it into memory
+ * so it can be iterated and parsed using standard javascript. This lets
+ * us generate docs. If your js doesn't eval, this method will crash.
+ */
 var isEvaled = false;
-
 var evalWidgetJs = function() {
   
   if (isEvaled) return;
@@ -215,10 +228,9 @@ var evalWidgetJs = function() {
   // This method reads in your widget.js and evals it to
   // figure out all the info from it to generate docs and sample
   // code to make your life easy
-  widgetSrc = fs.readFileSync(fileJsPath)+'';
+  widgetSrc = fs.readFileSync('widget.js')+'';
   
   // fill in some auto fill stuff
-  /*
   var widgetUrl = 'http://' +
     process.env.C9_PROJECT + '-' + process.env.C9_USER +
     '.c9users.io/widget.html';
@@ -226,7 +238,6 @@ var evalWidgetJs = function() {
     process.env.C9_USER + '/' +
     process.env.C9_PROJECT;
   var github = getGithubUrl();
-  */
 
   var reUrl = /(url\s*:\s*['"]?)\(auto fill by runme\.js\)/;
   //console.log("reUrl:", reUrl);
@@ -236,9 +247,8 @@ var evalWidgetJs = function() {
   widgetSrc = widgetSrc.replace(/(testurl\s*:\s*['"]?)\(auto fill by runme\.js\)/, "$1" + widgetUrl);
   
   // rewrite the javascript
-  //fs.writeFileSync(fileJsPath, widgetSrc);
+  //fs.writeFileSync('widget.js', widgetSrc);
   
-  console.log("before we eval here is the src:", widgetSrc);
   eval(widgetSrc);
   //console.log("evaled the widget.js");
   //isEvaled = true;
@@ -424,9 +434,9 @@ $widget-img
 
 ## ChiliPeppr $widget-name
 
-All ChiliPeppr workspaces/widgets/elements are defined using cpdefine() which is a method
+All ChiliPeppr widgets/elements are defined using cpdefine() which is a method
 that mimics require.js. Each defined object must have a unique ID so it does
-not conflict with other ChiliPeppr objects.
+not conflict with other ChiliPeppr widgets.
 
 | Item                  | Value           |
 | -------------         | ------------- | 
@@ -440,11 +450,11 @@ not conflict with other ChiliPeppr objects.
 
 ## Example Code for chilipeppr.load() Statement
 
-You can use the code below as a starting point for instantiating this workspace 
-from ChiliPeppr's Edit Boot Script dialog box. The key is that you need to load 
-your workspace inlined into the standard #pnlWorkspace div so the DOM can parse your HTML, CSS, and 
-Javascript. Then you use cprequire() to find your workspace's Javascript and get 
-back the instance of it to init() it.
+You can use the code below as a starting point for instantiating this widget 
+inside a workspace or from another widget. The key is that you need to load 
+your widget inlined into a div so the DOM can parse your HTML, CSS, and 
+Javascript. Then you use cprequire() to find your widget's Javascript and get 
+back the instance of it.
 
 \`\`\`javascript
 $widget-cploadjs
@@ -452,8 +462,7 @@ $widget-cploadjs
 
 ## Publish
 
-This workspace publishes the following signals. These signals are owned by this workspace and are published to 
-all objects inside the ChiliPeppr environment that listen to them via the 
+This widget/element publishes the following signals. These signals are owned by this widget/element and are published to all objects inside the ChiliPeppr environment that listen to them via the 
 chilipeppr.subscribe(signal, callback) method. 
 To better understand how ChiliPeppr's subscribe() method works see amplify.js's documentation at http://amplifyjs.com/api/pubsub/
 
@@ -473,8 +482,7 @@ To better understand how ChiliPeppr's subscribe() method works see amplify.js's 
 
 ## Subscribe
 
-This workspace subscribes to the following signals. These signals are owned by this workspace. 
-Other objects inside the ChiliPeppr environment can publish to these signals via the chilipeppr.publish(signal, data) method. 
+This widget/element subscribes to the following signals. These signals are owned by this widget/element. Other objects inside the ChiliPeppr environment can publish to these signals via the chilipeppr.publish(signal, data) method. 
 To better understand how ChiliPeppr's publish() method works see amplify.js's documentation at http://amplifyjs.com/api/pubsub/
 
   <table id="com-chilipeppr-elem-pubsubviewer-sub" class="table table-bordered table-striped">
@@ -493,7 +501,7 @@ To better understand how ChiliPeppr's publish() method works see amplify.js's do
 
 ## Foreign Publish
 
-This workspace publishes to the following signals that are owned by other objects. 
+This widget/element publishes to the following signals that are owned by other objects. 
 To better understand how ChiliPeppr's subscribe() method works see amplify.js's documentation at http://amplifyjs.com/api/pubsub/
 
   <table id="com-chilipeppr-elem-pubsubviewer-foreignpub" class="table table-bordered table-striped">
@@ -512,7 +520,7 @@ To better understand how ChiliPeppr's subscribe() method works see amplify.js's 
 
 ## Foreign Subscribe
 
-This workspace publishes to the following signals that are owned by other objects.
+This widget/element publishes to the following signals that are owned by other objects.
 To better understand how ChiliPeppr's publish() method works see amplify.js's documentation at http://amplifyjs.com/api/pubsub/
 
   <table id="com-chilipeppr-elem-pubsubviewer-foreignsub" class="table table-bordered table-striped">
@@ -531,7 +539,7 @@ To better understand how ChiliPeppr's publish() method works see amplify.js's do
 
 ## Methods / Properties
 
-The table below shows, in order, the methods and properties inside the workspace object.
+The table below shows, in order, the methods and properties inside the widget/element.
 
   <table id="com-chilipeppr-elem-methodsprops" class="table table-bordered table-striped">
       <thead>
@@ -580,7 +588,6 @@ will you build on top of it?
 
 `
 
-  /*
   var widgetUrl = 'http://' +
     process.env.C9_PROJECT + '-' + process.env.C9_USER +
     '.c9users.io/widget.html';
@@ -591,7 +598,6 @@ will you build on top of it?
     process.env.C9_USER + '/' +
     process.env.C9_PROJECT;
   var github = getGithubUrl();
-  */
 
   md = md.replace(/\$widget-id/g, widget.id);
   md = md.replace(/\$widget-name/g, widget.name);
@@ -708,6 +714,25 @@ var generateWidgetDocs = function() {
     <script type="text/javascript" charset="utf-8" src="//i2dcui.appspot.com/js/bootstrap/bootstrap_3_1_1.min.js"></script>
     
     <style type='text/css'>
+    div#editor-box {
+      border: 2px dashed #7f7f7f;
+      text-align: center;
+      vertical-align: middle;
+      padding: 10px 10px 10px 10px;
+      line-height: 10px;
+      max-height: 500px;
+      max-width: 100%;
+    }
+      
+    div#editor-box > img {
+      max-width: 500px;
+      max-height: 500px;
+    }
+      
+    .contain {
+      background-size: 100%;
+      background-repeat: no-repeat;
+    }
     </style>
     
     <script type='text/javascript'>
@@ -716,10 +741,12 @@ var generateWidgetDocs = function() {
       $(function() {
       
       function ajaxPushToGithub() {
+        var message = prompt("Please enter your push message", "");
         console.log("pushing to github...");
-        $('.ajax-results').removeClass('hidden').html("Pushing your changes to Github");
+          $('.ajax-results').removeClass('hidden').html("Pushing your changes to Github");
         $.ajax({
-          url: "pushtogithub"
+          url: "pushtogithub",
+          data: { message: message }
         })
         .done(function( data ) {
           if ( console && console.log ) {
@@ -775,10 +802,145 @@ var generateWidgetDocs = function() {
         });
       }
       
+      function ajaxUploadScreenshot() {
+        //var canvas = document.getElementById('canvas' + index);
+        //var dataURL = canvas.toDataURL();
+        var dataURL = $('#editor-box').css('background-image');
+        console.log("ajaxUploadScreenshot..., data:", dataURL);
+        $('.ajax-results').removeClass('hidden').html("Uploading screenshot. ");
+        
+        $.ajax({
+            type: "POST",
+            url: "uploadscreenshot",
+            data: { 
+                imgBase64: dataURL
+            }
+        }).done(function(data) {
+            console.log('all_saved'); 
+            if (data && data.success) {
+              // success
+              $('.ajax-results').html(data.desc);
+            } else {
+              // error 
+              $('.ajax-results').html("<pre>ERROR:" + JSON.stringify(data, null, "\t") + "</pre>");
+            }
+        });
+      }
+      
+      // Created by STRd6
+      // MIT License
+      // jquery.paste_image_reader.js
+      (function ($) {
+          var defaults;
+          $.event.fix = (function (originalFix) {
+              return function (event) {
+                  event = originalFix.apply(this, arguments);
+                  if (event.type.indexOf('copy') === 0 || event.type.indexOf('paste') === 0) {
+                      event.clipboardData = event.originalEvent.clipboardData;
+                  }
+                  return event;
+              };
+          })($.event.fix);
+          defaults = {
+              callback: $.noop,
+              matchType: /image.*/
+          };
+          return $.fn.pasteImageReader = function (options) {
+              if (typeof options === "function") {
+                  options = {
+                      callback: options
+                  };
+              }
+              options = $.extend({}, defaults, options);
+              return this.each(function () {
+                  var $this, element;
+                  element = this;
+                  $this = $(this);
+                  return $this.bind('paste', function (event) {
+                      var clipboardData, found;
+                      found = false;
+                      clipboardData = event.clipboardData;
+                      return Array.prototype.forEach.call(clipboardData.types, function (type, i) {
+                          var file, reader;
+                          if (found) {
+                              return;
+                          }
+                          if (type.match(options.matchType) || clipboardData.items[i].type.match(options.matchType)) {
+                              file = clipboardData.items[i].getAsFile();
+                              reader = new FileReader();
+                              reader.onload = function (evt) {
+                                  return options.callback.call(element, {
+                                      dataURL: evt.target.result,
+                                      event: evt,
+                                      file: file,
+                                      name: file.name
+                                  });
+                              };
+                              reader.readAsDataURL(file);
+                              //snapshoot();
+                              return found = true;
+                          }
+                          backgroundImage
+                      });
+                  });
+              });
+          };
+      })(jQuery);
+      
+      
+      $("html").pasteImageReader(function (results) {
+              var dataURL, filename;
+              filename = results.filename, dataURL = results.dataURL;
+              $data.text(dataURL);
+              $size.val(results.file.size);
+              $type.val(results.file.type);
+              $test.attr('href', dataURL);
+              var img = document.createElement('img');
+              img.src = dataURL;
+              var w = img.width;
+              var h = img.height;
+              $width.val(w); $height.val(h);
+              $("div#editor-box").height(h);
+              return $(".active").css({
+                  backgroundImage: "url(" + dataURL + ")"
+              }).data({ 'width': w, 'height': h });
+          });
+      
+          var $data, $size, $type, $test, $width, $height;
+          $(function () {
+              $data = $('.data');
+              $size = $('.size');
+              $type = $('.type');
+              $test = $('#test');
+              $width = $('#width');
+              $height = $('#height');
+              $('.target').on('click', function () {
+                  var $this = $(this);
+                  var bi = $this.css('background-image');
+                  if (bi != 'none') {
+                      $data.text(bi.substr(4, bi.length - 6));
+                  }
+      
+                  $('.active').removeClass('active');
+                  $this.addClass('active');
+      
+                  $this.toggleClass('contain');
+      
+                  $width.val($this.data('width'));
+                  $height.val($this.data('height'));
+                  if ($this.hasClass('contain')) {
+                      $this.css({ 'width': $this.data('width'), 'height': $this.data('height'), 'z-index': '10' });
+                  } else {
+                      $this.css({ 'width': '', 'height': '', 'z-index': '' });
+                  }
+              });
+          });
+      
       function init() {
         $('.btn-pushtogithub').click(ajaxPushToGithub);
         $('.btn-pullfromgithub').click(ajaxPullFromGithub);
         $('.btn-mergetemplate').click(ajaxMergeFromCpTemplateRepo);
+        $('.btn-uploadscreenshot').click(ajaxUploadScreenshot);
         console.log("Init complete");
       }
       
@@ -801,15 +963,20 @@ var generateWidgetDocs = function() {
         Results
       </div>
       
+      <p style="padding-top:20px;">Note: Paste image from clipboard here to generate screenshot of widget for docs.</p>
+      <button class="btn btn-xs btn-default btn-uploadscreenshot" style="margin-bottom:5px;">Upload Screenshot</button>
+      <div id="editor-box" class="target" contenteditable="true">
+      </div>
+      
       <h1 class="page-header" style="margin-top:20px;">$pubsub-id</h1>
       
       <p>$pubsub-desc</p>
 
-      <h2>ChiliPeppr Workspace Docs</h2>
+      <h2>ChiliPeppr Widget Docs</h2>
 
       <p>The content below is auto generated as long as you follow the standard
-      template for a ChiliPeppr workspace from 
-      <a href="">http://github.com/chilipeppr/workspace-template</a>.</p>
+      template for a ChiliPeppr widget from 
+      <a href="">http://github.com/chilipeppr/widget-template</a>.</p>
       
       <table class="table table-bordered table-striped">
       <tbody>
@@ -867,10 +1034,10 @@ var generateWidgetDocs = function() {
   
   <h2>Example Code for chilipeppr.load() Statement</h2>
   <p>You can use the code below as a starting point for instantiating
-  this workspace from ChiliPeppr's Edit Boot Script dialog. The key is that
-  you need to load your workspace inlined into the #pnlWorkspace div so the DOM can parse
+  this widget inside a workspace or from another widget. The key is that
+  you need to load your widget inlined into a div so the DOM can parse
   your HTML, CSS, and Javascript. Then you use cprequire() to find
-  your workspace's Javascript and get back the instantiated instance of it.</p>
+  your widget's Javascript and get back the instantiated instance of it.</p>
   
   <pre><code class="language-js" 
   data-lang="js">$cp-load-stmt</code></pre>
@@ -994,18 +1161,18 @@ var generateWidgetDocs = function() {
   
 </div>
 
-  <h2>Structure of a Workspace</h2>
-  <p>The standard structure of a ChiliPeppr workspace includes making 
-  your workspace out of workspace.js, workspace.css, and workspace.html. The final
-  workspace has everything inlined into one HTML file. It is important
+  <h2>Structure of a Widget</h2>
+  <p>The standard structure of a ChiliPeppr widget includes making 
+  your widget out of widjet.js, widjet.css, and widget.html. The final
+  widget has everything inlined into one HTML file. It is important
   to have everything inlined so the chilipeppr.load() method succeeds
   because it only loads a single URL.
   </p>
       
   <p>When this NodeJs page is executed it will combine 
-  your workspace.js, workspace.css, and workspace.html files into a monolithic 
-  HTML file called auto-generated-workspace.html. You should use this file
-  as your final workspace inlined file.</p>
+  your widget.js, widget.css, and widget.html files into a monolithic 
+  HTML file called auto-generated-widget.html. You should use this file
+  as your final widget inlined file.</p>
   
   <p>This NodeJs script
   will also push your updated content to your forked repo on Github 
@@ -1018,7 +1185,6 @@ var generateWidgetDocs = function() {
   </html>
 `;
 
-  /*
   var widgetUrl = 'http://' +
     process.env.C9_PROJECT + '-' + process.env.C9_USER +
     '.c9users.io/widget.html';
@@ -1031,7 +1197,6 @@ var generateWidgetDocs = function() {
     process.env.C9_USER + '/' +
     process.env.C9_PROJECT;
   var github = getGithubUrl();
-  */
   
   html = html.replace(/\$pubsub-id/g, widget.id);
   html = html.replace(/\$pubsub-name/g, widget.name);
@@ -1108,7 +1273,7 @@ var appendKeyVal = function(data, id) {
         '</td></tr>';
     }
   } else {
-    str = '<tr><td colspan="2">(No signals defined in this workspace)</td></tr>';
+    str = '<tr><td colspan="2">(No signals defined in this widget/element)</td></tr>';
   }
   return str;
 }
@@ -1145,22 +1310,21 @@ var generateCpLoadStmt = function() {
     var idCamelCase = arr.join("");
     
     js = '' +
-      '// This code should be pasted into the ChiliPeppr Edit Boot Javascript dialog box\n' +
-      '// located in the upper right corner of any chilipeppr.com page.\n' +
-      '// The ChiliPeppr environment has a standard div called #pnlWorkspace that\n' +
-      '// this workspace should be loaded into.\n' +
+      '// Inject new div to contain widget or use an existing div with an ID\n' +
+      '$("body").append(\'<\' + \'div id="myDiv' + idCamelCase + '"><\' + \'/div>\');\n\n' +
       'chilipeppr.load(\n' +
-      '  "#pnlWorkspace",\n' +
+      '  "#myDiv' + idCamelCase + '",\n' +
       '  "' + rawurl + '",\n' +
       '  function() {\n' +
-      '    // Callback after workspace loaded into #pnlWorkspace\n' +
-      '    // Now use require.js to get reference to instantiated workspace\n' +
+      '    // Callback after widget loaded into #myDiv' + idCamelCase + '\n' +
+      '    // Now use require.js to get reference to instantiated widget\n' +
       '    cprequire(\n' +
-      '      ["' + id + '"], // the id you gave your workspace\n' +
-      '      function(my' + idCamelCase + ') {\n' +
-      '        // Callback that is passed reference to the newly loaded workspace\n' +
-      '        console.log("' + widget.name + ' just got loaded.", my' + idCamelCase + ');\n' +
-      '        my' + idCamelCase + '.init();\n' +
+      //'      "inline:com-chilipeppr-widget-yourname", // the id you gave your widget\n' +
+      '      ["' + id + '"], // the id you gave your widget\n' +
+      '      function(myObj' + idCamelCase + ') {\n' +
+      '        // Callback that is passed reference to the newly loaded widget\n' +
+      '        console.log("' + widget.name + ' just got loaded.", myObj' + idCamelCase + ');\n' +
+      '        myObj' + idCamelCase + '.init();\n' +
       '      }\n' +
       '    );\n' +
       '  }\n' +
@@ -1187,18 +1351,21 @@ var pushToGithub = function() {
   console.log("Pushed to github");
 }
 
-var pushToGithubSync = function() {
+var pushToGithubSync = function(message) {
   
   var proc = require('child_process');
+
+  if(! message)
+    message = "Made some changes to ChiliPeppr widget using Cloud9";
   
   // git add *
   // git commit -m "Made some changes to ChiliPeppr widget using Cloud9"
   // git push
   var stdout = "";
   stdout += "> git add *\n";
-  stdout += '> git commit -m "Made some changes to ChiliPeppr myWorkspace"\n';
+  stdout += '> git commit -m "' + message + '"\n';
   stdout += "> git push\n";
-  stdout += proc.execSync('git add *; git commit -m "Made some changes to ChiliPeppr test workspace on local"; git push;', { encoding: 'utf8' });
+  stdout += proc.execSync('git add *; git commit -m "' + message + '"; git push;', { encoding: 'utf8' });
   console.log("Pushed to github sync. Stdout:", stdout);
   
   return stdout;
@@ -1206,12 +1373,11 @@ var pushToGithubSync = function() {
 
 var pushToGithubAsync = function() {
   var exec = require('child_process').exec;
- 
+
   exec('git add *', function(error1, stdout1, stderr1) {
     // command output is in stdout
     console.log("stdout:", stdout1, "stderr:", stderr1);
-    // exec('bash -c "git commit -m \\"Made some changes to ChiliPeppr test workspace\\""', function(error2, stdout2, stderr2) {
-    exec('git commit -m "Made some changes to ChiliPeppr test workspace"', function (error2, stdout2, stderr2) {
+    exec('bash -c "git commit -m \\"Made some changes to ChiliPeppr widget using Cloud9\\""', function(error2, stdout2, stderr2) {
       // command output is in stdout
       console.log("stdout:", stdout2, "stderr:", stderr2);
       exec('git push', function(error3, stdout3, stderr3) {
@@ -1246,9 +1412,9 @@ var mergeFromCpTemplateRepo = function() {
   var stdout = "";
   stdout += pushToGithubSync();
   stdout += "> git checkout master\n";
-  stdout += "> git pull https://github.com/chilipeppr/myWorkspace-template.git\n";
+  stdout += "> git pull https://github.com/chilipeppr/widget-template.git\n";
   try {
-    stdout += proc.execSync('git checkout master; git pull https://github.com/chilipeppr/myWorkspace-template.git', { encoding: 'utf8' });
+    stdout += proc.execSync('git checkout master; git pull https://github.com/chilipeppr/widget-template.git', { encoding: 'utf8' });
   } catch (ex) {
     console.log("error on merge:", ex);
     stdout += "Tiny little error on merge.\n";
@@ -1275,8 +1441,8 @@ var generateInlinedFile = function() {
   // it to make things clean when chilipeppr.load() is called with a single
   // URL to this widget. This file should get checked into Github and should
   // be the file that is loaded by ChiliPeppr.
-  var fileCss = fs.readFileSync(fileCssPath).toString();
-  var fileHtml = fs.readFileSync(fileHtmlPath).toString();
+  var fileCss = fs.readFileSync("widget.css").toString();
+  var fileHtml = fs.readFileSync("widget.html").toString();
   var fileJs = widgetSrc; // fs.readFileSync("widget.js").toString();
 
   // auto fill title if they're asking for it
@@ -1310,33 +1476,31 @@ var generateInlinedFile = function() {
   );
 
   // now write out the auto-gen file
-  fs.writeFileSync(fileAutoGeneratePath, fileHtml);
-  console.log("Updated " + fileAutoGeneratePath );
+  fs.writeFileSync("auto-generated-widget.html", fileHtml);
+  console.log("Updated auto-generated-widget.html");
 
 }
 
 var getMainPage = function() {
   var html = "";
 
-  // var widgetUrl = 'http://' +
-  //   process.env.C9_PROJECT + '-' + process.env.C9_USER +
-  //   '.c9users.io/widget.html';
-  // var editUrl = 'http://ide.c9.io/' +
-  //   process.env.C9_USER + '/' +
-  //   process.env.C9_PROJECT;
+  var widgetUrl = 'http://' +
+    process.env.C9_PROJECT + '-' + process.env.C9_USER +
+    '.c9users.io/widget.html';
+  var editUrl = 'http://ide.c9.io/' +
+    process.env.C9_USER + '/' +
+    process.env.C9_PROJECT;
 
   var giturl = getGithubUrl();
-  var editUrl = giturl.url;
-  var widgetUrl = giturl.rawurl.replace(/\/[\s\S]*$/i, "/workspace.html");
 
   html = '<html><body>' +
-    'Your ChiliPeppr Workspace can be tested at ' +
+    'Your ChiliPeppr Widget can be tested at ' +
     '<a target="_blank" href="' + widgetUrl + '">' +
     widgetUrl + '</a><br><br>\n\n' +
-    'Your ChiliPeppr Workspace can be edited at ' +
+    'Your ChiliPeppr Widget can be edited at ' +
     '<a target="_blank" href="' + editUrl + '">' +
     editUrl + '</a><br><br>\n\n' +
-    'Your ChiliPeppr Workspace Github Url for forking ' +
+    'Your ChiliPeppr Widget Github Url for forking ' +
     '<a target="_blank" href="' + giturl.url + '">' +
     giturl + '</a><br><br>\n\n' +
     'C9_PROJECT: ' + process.env.C9_PROJECT + '<br>\n' +
@@ -1344,13 +1508,13 @@ var getMainPage = function() {
     '';
 
   generateInlinedFile();
-  html += '<br><br>Just updated your ' + fileAutoGeneratePath + ' file.';
+  html += '<br><br>Just updated your auto-generated-widget.html file.';
     
   //pushToGithub();
   //html += '<br><br>Just pushed updates to your Github repo.';
   
   var jsLoad = generateCpLoadStmt();
-  html += '<br><br>Sample chilipeppr.load() Javascript for Your Workspace\n<pre>' +
+  html += '<br><br>Sample chilipeppr.load() Javascript for Your Widget\n<pre>' +
     jsLoad +
     '</pre>\n';
     
@@ -1371,37 +1535,27 @@ var getGithubUrl = function(callback) {
   var cmd = 'git config --get remote.origin.url';
 
   var stdout = childproc.execSync(cmd, { encoding: 'utf8' });
-  // console.log("Got the following Github URL:", stdout);
+  //console.log("Got the following Github URL:", stdout);
 
-  // var re = /.*github.com:/i;
-  // var url = stdout.replace(re, "");
-  var re = /.*github.com./i;
+  var re = /.*github.com:/i;
   var url = stdout.replace(re, "");
   url = url.replace(/.git[\s\S]*$/i, ""); // remove end
-  // url = url.replace(/.io.git[\s\S]*$/i, ".io"); // remove end
-  var userName = url.replace(/\/[\s\S]*$/i, "");
-
-  // re = RegExp(userName + '/');
-  // var rawurl = url.replace(re, "https://");
-  re = RegExp(userName + '/');
-  var repoName = url.replace(re, '');
-  var rawurl = 'https://' + userName + '.github.io/' + repoName;
-  rawurl += '/' + fileAutoGeneratePath;
-
-  url = "https://github.com/" + url;
-
+  
   // prepend with clean githut url
-  // url = "http://github.com/" + url;
-
-
+  url = "http://github.com/" + url;
+  
+  var rawurl = url.replace(/\/github.com\//i, "/raw.githubusercontent.com/");
+  rawurl += '/master/auto-generated-widget.html';
+  
   var ret = {
     url: url,
     rawurl : rawurl
   };
   
-  // console.log("ret:", ret);
+  ret.url = "https://github.com/chilipeppr-grbl/widget-grbl";
+  ret.rawurl = "http://raw.githubusercontent.com/chilipeppr-grbl/widget-grbl/master/auto-generated-widget.html";
+  
+  //console.log("ret:", ret);
   return ret;
     
 }
-
-init();

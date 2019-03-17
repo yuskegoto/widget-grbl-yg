@@ -5,44 +5,45 @@ This widget shows the GRBL Buffer so other widgets can limit their flow of sendi
 
 ## ChiliPeppr Widget / GRBL
 
-All ChiliPeppr widgets/elements are defined using cpdefine() which is a method
+All ChiliPeppr workspaces/widgets/elements are defined using cpdefine() which is a method
 that mimics require.js. Each defined object must have a unique ID so it does
-not conflict with other ChiliPeppr widgets.
+not conflict with other ChiliPeppr objects.
 
 | Item                  | Value           |
 | -------------         | ------------- | 
 | ID                    | com-chilipeppr-widget-grbl |
 | Name                  | Widget / GRBL |
 | Description           | This widget shows the GRBL Buffer so other widgets can limit their flow of sending commands and other specific GRBL features. |
-| chilipeppr.load() URL | http://raw.githubusercontent.com/chilipeppr-grbl/widget-grbl/master/auto-generated-widget.html |
-| Edit URL              | http://ide.c9.io/chilipeppr/widget-grbl |
-| Github URL            | https://github.com/chilipeppr-grbl/widget-grbl |
-| Test URL              | https://preview.c9users.io/chilipeppr/widget-grbl/widget.html |
+| chilipeppr.load() URL | https://yuskegoto.github.io/widget-grbl-yg/auto-generated-widget.html |
+| Edit URL              | https://github.com/yuskegoto/widget-grbl-yg |
+| Github URL            | https://github.com/yuskegoto/widget-grbl-yg |
+| Test URL              | https://yuskegoto.github.io/widget-grbl-yg/auto-generated-widget.html |
 
 ## Example Code for chilipeppr.load() Statement
 
-You can use the code below as a starting point for instantiating this widget 
-inside a workspace or from another widget. The key is that you need to load 
-your widget inlined into a div so the DOM can parse your HTML, CSS, and 
-Javascript. Then you use cprequire() to find your widget's Javascript and get 
-back the instance of it.
+You can use the code below as a starting point for instantiating this workspace 
+from ChiliPeppr's Edit Boot Script dialog box. The key is that you need to load 
+your workspace inlined into the standard #pnlWorkspace div so the DOM can parse your HTML, CSS, and 
+Javascript. Then you use cprequire() to find your workspace's Javascript and get 
+back the instance of it to init() it.
 
 ```javascript
-// Inject new div to contain widget or use an existing div with an ID
-$("body").append('<' + 'div id="myDivWidgetGrbl"><' + '/div>');
-
+// This code should be pasted into the ChiliPeppr Edit Boot Javascript dialog box
+// located in the upper right corner of any chilipeppr.com page.
+// The ChiliPeppr environment has a standard div called #pnlWorkspace that
+// this workspace should be loaded into.
 chilipeppr.load(
-  "#myDivWidgetGrbl",
-  "http://raw.githubusercontent.com/chilipeppr-grbl/widget-grbl/master/auto-generated-widget.html",
+  "#pnlWorkspace",
+  "https://yuskegoto.github.io/widget-grbl-yg/auto-generated-widget.html",
   function() {
-    // Callback after widget loaded into #myDivWidgetGrbl
-    // Now use require.js to get reference to instantiated widget
+    // Callback after workspace loaded into #pnlWorkspace
+    // Now use require.js to get reference to instantiated workspace
     cprequire(
-      ["inline:com-chilipeppr-widget-grbl"], // the id you gave your widget
-      function(myObjWidgetGrbl) {
-        // Callback that is passed reference to the newly loaded widget
-        console.log("Widget / GRBL just got loaded.", myObjWidgetGrbl);
-        myObjWidgetGrbl.init();
+      ["inline:com-chilipeppr-widget-grbl"], // the id you gave your workspace
+      function(myWidgetGrbl) {
+        // Callback that is passed reference to the newly loaded workspace
+        console.log("Widget / GRBL just got loaded.", myWidgetGrbl);
+        myWidgetGrbl.init();
       }
     );
   }
@@ -52,7 +53,8 @@ chilipeppr.load(
 
 ## Publish
 
-This widget/element publishes the following signals. These signals are owned by this widget/element and are published to all objects inside the ChiliPeppr environment that listen to them via the 
+This workspace publishes the following signals. These signals are owned by this workspace and are published to 
+all objects inside the ChiliPeppr environment that listen to them via the 
 chilipeppr.subscribe(signal, callback) method. 
 To better understand how ChiliPeppr's subscribe() method works see amplify.js's documentation at http://amplifyjs.com/api/pubsub/
 
@@ -70,7 +72,8 @@ To better understand how ChiliPeppr's subscribe() method works see amplify.js's 
 
 ## Subscribe
 
-This widget/element subscribes to the following signals. These signals are owned by this widget/element. Other objects inside the ChiliPeppr environment can publish to these signals via the chilipeppr.publish(signal, data) method. 
+This workspace subscribes to the following signals. These signals are owned by this workspace. 
+Other objects inside the ChiliPeppr environment can publish to these signals via the chilipeppr.publish(signal, data) method. 
 To better understand how ChiliPeppr's publish() method works see amplify.js's documentation at http://amplifyjs.com/api/pubsub/
 
   <table id="com-chilipeppr-elem-pubsubviewer-sub" class="table table-bordered table-striped">
@@ -87,7 +90,7 @@ To better understand how ChiliPeppr's publish() method works see amplify.js's do
 
 ## Foreign Publish
 
-This widget/element publishes to the following signals that are owned by other objects. 
+This workspace publishes to the following signals that are owned by other objects. 
 To better understand how ChiliPeppr's subscribe() method works see amplify.js's documentation at http://amplifyjs.com/api/pubsub/
 
   <table id="com-chilipeppr-elem-pubsubviewer-foreignpub" class="table table-bordered table-striped">
@@ -104,7 +107,7 @@ To better understand how ChiliPeppr's subscribe() method works see amplify.js's 
 
 ## Foreign Subscribe
 
-This widget/element publishes to the following signals that are owned by other objects.
+This workspace publishes to the following signals that are owned by other objects.
 To better understand how ChiliPeppr's publish() method works see amplify.js's documentation at http://amplifyjs.com/api/pubsub/
 
   <table id="com-chilipeppr-elem-pubsubviewer-foreignsub" class="table table-bordered table-striped">
@@ -121,7 +124,7 @@ To better understand how ChiliPeppr's publish() method works see amplify.js's do
 
 ## Methods / Properties
 
-The table below shows, in order, the methods and properties inside the widget/element.
+The table below shows, in order, the methods and properties inside the workspace object.
 
   <table id="com-chilipeppr-elem-methodsprops" class="table table-bordered table-striped">
       <thead>
@@ -132,7 +135,7 @@ The table below shows, in order, the methods and properties inside the widget/el
           </tr>
       </thead>
       <tbody>
-      <tr valign="top"><td>id</td><td>string</td><td>"com-chilipeppr-widget-grbl"</td></tr><tr valign="top"><td>implements</td><td>object</td><td></td></tr><tr valign="top"><td>url</td><td>string</td><td>"http://raw.githubusercontent.com/chilipeppr-grbl/widget-grbl/master/auto-generated-widget.html"</td></tr><tr valign="top"><td>fiddleurl</td><td>string</td><td>"http://ide.c9.io/chilipeppr/widget-grbl"</td></tr><tr valign="top"><td>githuburl</td><td>string</td><td>"https://github.com/chilipeppr-grbl/widget-grbl"</td></tr><tr valign="top"><td>testurl</td><td>string</td><td>"http://widget-grbl-chilipeppr.c9users.io/widget.html"</td></tr><tr valign="top"><td>name</td><td>string</td><td>"Widget / GRBL"</td></tr><tr valign="top"><td>desc</td><td>string</td><td>"This widget shows the GRBL Buffer so other widgets can limit their flow of sending commands and other specific GRBL features."</td></tr><tr valign="top"><td>publish</td><td>object</td><td>Please see docs above.</td></tr><tr valign="top"><td>subscribe</td><td>object</td><td>Please see docs above.</td></tr><tr valign="top"><td>foreignPublish</td><td>object</td><td>Please see docs above.</td></tr><tr valign="top"><td>foreignSubscribe</td><td>object</td><td>Please see docs above.</td></tr><tr valign="top"><td>config</td><td>object</td><td></td></tr><tr valign="top"><td>err_log</td><td>object</td><td></td></tr><tr valign="top"><td>buffer_name</td><td>string</td><td></td></tr><tr valign="top"><td>report_mode</td><td>number</td><td></td></tr><tr valign="top"><td>work_mode</td><td>number</td><td></td></tr><tr valign="top"><td>controller_units</td><td>object</td><td></td></tr><tr valign="top"><td>status</td><td>string</td><td>"Offline"</td></tr><tr valign="top"><td>version</td><td>string</td><td></td></tr><tr valign="top"><td>q_count</td><td>number</td><td></td></tr><tr valign="top"><td>alarm</td><td>boolean</td><td></td></tr><tr valign="top"><td>offsets</td><td>object</td><td></td></tr><tr valign="top"><td>last_work</td><td>object</td><td></td></tr><tr valign="top"><td>last_machine</td><td>object</td><td></td></tr><tr valign="top"><td>g_status_reports</td><td>object</td><td></td></tr><tr valign="top"><td>gcode_lookup</td><td>object</td><td></td></tr><tr valign="top"><td>init</td><td>function</td><td>function () </td></tr><tr valign="top"><td>options</td><td>object</td><td></td></tr><tr valign="top"><td>setupUiFromCookie</td><td>function</td><td>function () </td></tr><tr valign="top"><td>saveOptionsCookie</td><td>function</td><td>function () </td></tr><tr valign="top"><td>showBody</td><td>function</td><td>function (evt) </td></tr><tr valign="top"><td>hideBody</td><td>function</td><td>function (evt) </td></tr><tr valign="top"><td>btnSetup</td><td>function</td><td>function () </td></tr><tr valign="top"><td>showConfigModal</td><td>function</td><td>function () </td></tr><tr valign="top"><td>hideConfigModal</td><td>function</td><td>function () </td></tr><tr valign="top"><td>saveConfigModal</td><td>function</td><td>function () </td></tr><tr valign="top"><td>updateWorkUnits</td><td>function</td><td>function (units)</td></tr><tr valign="top"><td>updateReportUnits</td><td>function</td><td>function ()</td></tr><tr valign="top"><td>openController</td><td>function</td><td>function (isWithDelay) </td></tr><tr valign="top"><td>closeController</td><td>function</td><td>function (isWithDelay) </td></tr><tr valign="top"><td>getControllerInfo</td><td>function</td><td>function ()</td></tr><tr valign="top"><td>trackGcodeLines</td><td>function</td><td>function ()</td></tr><tr valign="top"><td>restartStatusInterval</td><td>function</td><td>function ()</td></tr><tr valign="top"><td>grblResponse</td><td>function</td><td>function (recvline) </td></tr><tr valign="top"><td>sendCode</td><td>function</td><td>function (sendline)</td></tr><tr valign="top"><td>clearBuffer</td><td>function</td><td>function ()</td></tr><tr valign="top"><td>publishAxisStatus</td><td>function</td><td>function (axes) </td></tr><tr valign="top"><td>plannerLastEvent</td><td>string</td><td>"resume"</td></tr><tr valign="top"><td>publishPlannerPause</td><td>function</td><td>function () </td></tr><tr valign="top"><td>publishPlannerResume</td><td>function</td><td>function () </td></tr><tr valign="top"><td>toInch</td><td>function</td><td>function (mm)</td></tr><tr valign="top"><td>toMM</td><td>function</td><td>function (inch)</td></tr><tr valign="top"><td>addError</td><td>function</td><td>function (line, msg)</td></tr><tr valign="top"><td>forkSetup</td><td>function</td><td>function () </td></tr><tr valign="top"><td>uiHover</td><td>function</td><td>function ()</td></tr>
+      <tr valign="top"><td>id</td><td>string</td><td>"com-chilipeppr-widget-grbl"</td></tr><tr valign="top"><td>implements</td><td>object</td><td></td></tr><tr valign="top"><td>url</td><td>string</td><td>"https://yuskegoto.github.io/widget-grbl-yg/auto-generated-widget.html"</td></tr><tr valign="top"><td>fiddleurl</td><td>string</td><td>"https://github.com/yuskegoto/widget-grbl-yg"</td></tr><tr valign="top"><td>githuburl</td><td>string</td><td>"https://github.com/yuskegoto/widget-grbl-yg"</td></tr><tr valign="top"><td>testurl</td><td>string</td><td>"https:/widget.html"</td></tr><tr valign="top"><td>name</td><td>string</td><td>"Widget / GRBL"</td></tr><tr valign="top"><td>desc</td><td>string</td><td>"This widget shows the GRBL Buffer so other widgets can limit their flow of sending commands and other specific GRBL features."</td></tr><tr valign="top"><td>publish</td><td>object</td><td>Please see docs above.</td></tr><tr valign="top"><td>subscribe</td><td>object</td><td>Please see docs above.</td></tr><tr valign="top"><td>foreignPublish</td><td>object</td><td>Please see docs above.</td></tr><tr valign="top"><td>foreignSubscribe</td><td>object</td><td>Please see docs above.</td></tr><tr valign="top"><td>config</td><td>object</td><td></td></tr><tr valign="top"><td>err_log</td><td>object</td><td></td></tr><tr valign="top"><td>buffer_name</td><td>string</td><td></td></tr><tr valign="top"><td>report_mode</td><td>number</td><td></td></tr><tr valign="top"><td>work_mode</td><td>number</td><td></td></tr><tr valign="top"><td>controller_units</td><td>object</td><td></td></tr><tr valign="top"><td>status</td><td>string</td><td>"Offline"</td></tr><tr valign="top"><td>version</td><td>string</td><td></td></tr><tr valign="top"><td>q_count</td><td>number</td><td></td></tr><tr valign="top"><td>alarm</td><td>boolean</td><td></td></tr><tr valign="top"><td>offsets</td><td>object</td><td></td></tr><tr valign="top"><td>last_work</td><td>object</td><td></td></tr><tr valign="top"><td>last_machine</td><td>object</td><td></td></tr><tr valign="top"><td>g_status_reports</td><td>object</td><td></td></tr><tr valign="top"><td>gcode_lookup</td><td>object</td><td></td></tr><tr valign="top"><td>init</td><td>function</td><td>function () </td></tr><tr valign="top"><td>options</td><td>object</td><td></td></tr><tr valign="top"><td>setupUiFromCookie</td><td>function</td><td>function () </td></tr><tr valign="top"><td>saveOptionsCookie</td><td>function</td><td>function () </td></tr><tr valign="top"><td>showBody</td><td>function</td><td>function (evt) </td></tr><tr valign="top"><td>hideBody</td><td>function</td><td>function (evt) </td></tr><tr valign="top"><td>btnSetup</td><td>function</td><td>function () </td></tr><tr valign="top"><td>showConfigModal</td><td>function</td><td>function () </td></tr><tr valign="top"><td>hideConfigModal</td><td>function</td><td>function () </td></tr><tr valign="top"><td>saveConfigModal</td><td>function</td><td>function () </td></tr><tr valign="top"><td>updateWorkUnits</td><td>function</td><td>function (units)</td></tr><tr valign="top"><td>updateReportUnits</td><td>function</td><td>function ()</td></tr><tr valign="top"><td>openController</td><td>function</td><td>function (isWithDelay) </td></tr><tr valign="top"><td>closeController</td><td>function</td><td>function (isWithDelay) </td></tr><tr valign="top"><td>getControllerInfo</td><td>function</td><td>function ()</td></tr><tr valign="top"><td>trackGcodeLines</td><td>function</td><td>function ()</td></tr><tr valign="top"><td>restartStatusInterval</td><td>function</td><td>function ()</td></tr><tr valign="top"><td>grblResponse</td><td>function</td><td>function (recvline) </td></tr><tr valign="top"><td>sendCode</td><td>function</td><td>function (sendline)</td></tr><tr valign="top"><td>clearBuffer</td><td>function</td><td>function ()</td></tr><tr valign="top"><td>publishAxisStatus</td><td>function</td><td>function (axes) </td></tr><tr valign="top"><td>plannerLastEvent</td><td>string</td><td>"resume"</td></tr><tr valign="top"><td>publishPlannerPause</td><td>function</td><td>function () </td></tr><tr valign="top"><td>publishPlannerResume</td><td>function</td><td>function () </td></tr><tr valign="top"><td>toInch</td><td>function</td><td>function (mm)</td></tr><tr valign="top"><td>toMM</td><td>function</td><td>function (inch)</td></tr><tr valign="top"><td>addError</td><td>function</td><td>function (line, msg)</td></tr><tr valign="top"><td>forkSetup</td><td>function</td><td>function () </td></tr><tr valign="top"><td>uiHover</td><td>function</td><td>function ()</td></tr>
       </tbody>
   </table>
 
