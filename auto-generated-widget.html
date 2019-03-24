@@ -16,13 +16,13 @@
     <style type='text/css'>
 /* CSS for ChiliPeppr Widget */
 
-#com-chilipeppr-widget-grbl-body {
+#com-chilipeppr-widget-grbl-yg-body {
     /*padding:0; */
 }
 .com-chilipeppr-interface-cnccontroller-stat .col {
     padding:0 10px 0 0;
 }
-#com-chilipeppr-widget-grbl-body{
+#com-chilipeppr-widget-grbl-yg-body{
     font-size:12px;
 }
 .com-chilipeppr-interface-cnccontroller-stat .col:last-child {
@@ -46,7 +46,7 @@
     font-size:12px;
 }
 
-#com-chilipeppr-widget-grbl .enabled{
+#com-chilipeppr-widget-grbl-yg .enabled{
     background-color: #CCFF99;
 }
 
@@ -92,7 +92,7 @@ requirejs.config({
 });
 
 // Test this element. This code is auto-removed by the chilipeppr.load()
-cprequire_test(["inline:com-chilipeppr-widget-grbl"], function (grbl) {
+cprequire_test(["inline:com-chilipeppr-widget-grbl-yg"], function (grbl) {
     //console.log("test running of " + grbl.id);
     grbl.init();
     //testRecvline();
@@ -138,9 +138,9 @@ cprequire_test(["inline:com-chilipeppr-widget-grbl"], function (grbl) {
 
 function Queue(){var e=[];var t=0;this.getLength=function(){return e.length-t};this.isEmpty=function(){return e.length==0};this.enqueue=function(t){e.push(t)};this.dequeue=function(){if(e.length==0)return undefined;var n=e[t];if(++t*2>=e.length){e=e.slice(t);t=0}return n};this.peek=function(){return e.length>0?e[t]:undefined};this.sum=function(){for(var t=0,n=0;t<e.length;n+=e[t++]);return n};this.last=function(){return e[e.length-1]}}
 
-cpdefine("inline:com-chilipeppr-widget-grbl", ["chilipeppr_ready", "jquerycookie"], function () {
+cpdefine("inline:com-chilipeppr-widget-grbl-yg", ["chilipeppr_ready", "jquerycookie"], function () {
     return {
-        id: "com-chilipeppr-widget-grbl",
+        id: "com-chilipeppr-widget-grbl-yg",
         implements: { 
             "com-chilipeppr-interface-cnccontroller" : "The CNC Controller interface is a loosely defined set of publish/subscribe signals. The notion of an interface is taken from object-oriented programming like Java where an interface is defined and then specific implementations of the interface are created. For the sake of a Javascript mashup like what ChiliPeppr is, the interface is just a rule to follow to publish signals and subscribe to signals by different top-level names than the ID of the widget or element implementing the interface. Most widgets/elements will publish and subscribe on their own ID. In this widget we are publishing/subscribing on an interface name. If another controller like Grbl is defined by a member of the community beyond this widget for GRBL, this widget can be forked and used without other widgets needing to be changed and the user could pick a Grbl or GRBL implementation of the interface."
         },
@@ -308,18 +308,18 @@ cpdefine("inline:com-chilipeppr-widget-grbl", ["chilipeppr_ready", "jquerycookie
             });
         },
         showBody: function(evt) {
-            $('#com-chilipeppr-widget-grbl .panel-body .stat-row').removeClass('hidden');
-            $('#com-chilipeppr-widget-grbl .hidebody span').addClass('glyphicon-chevron-up');
-            $('#com-chilipeppr-widget-grbl .hidebody span').removeClass('glyphicon-chevron-down');
+            $('#com-chilipeppr-widget-grbl-yg .panel-body .stat-row').removeClass('hidden');
+            $('#com-chilipeppr-widget-grbl-yg .hidebody span').addClass('glyphicon-chevron-up');
+            $('#com-chilipeppr-widget-grbl-yg .hidebody span').removeClass('glyphicon-chevron-down');
             if ((evt !== null)) {
                 this.options.showBody = true;
                 this.saveOptionsCookie();
             }
         },
         hideBody: function(evt) {
-            $('#com-chilipeppr-widget-grbl .panel-body .stat-row').addClass('hidden');
-            $('#com-chilipeppr-widget-grbl .hidebody span').removeClass('glyphicon-chevron-up');
-            $('#com-chilipeppr-widget-grbl .hidebody span').addClass('glyphicon-chevron-down');
+            $('#com-chilipeppr-widget-grbl-yg .panel-body .stat-row').addClass('hidden');
+            $('#com-chilipeppr-widget-grbl-yg .hidebody span').removeClass('glyphicon-chevron-up');
+            $('#com-chilipeppr-widget-grbl-yg .hidebody span').addClass('glyphicon-chevron-down');
             if ((evt !== null)) {
                 this.options.showBody = false;
                 this.saveOptionsCookie();
@@ -328,9 +328,9 @@ cpdefine("inline:com-chilipeppr-widget-grbl", ["chilipeppr_ready", "jquerycookie
         btnSetup: function() {
             // chevron hide body
             var that = this;
-            $('#com-chilipeppr-widget-grbl .hidebody').click(function(evt) {
+            $('#com-chilipeppr-widget-grbl-yg .hidebody').click(function(evt) {
                 //console.log("GRBL: hide/unhide body");
-                if ($('#com-chilipeppr-widget-grbl .panel-body .stat-row').hasClass('hidden')) {
+                if ($('#com-chilipeppr-widget-grbl-yg .panel-body .stat-row').hasClass('hidden')) {
                     // it's hidden, unhide
                     that.showBody(evt);
                 } else {
@@ -338,26 +338,26 @@ cpdefine("inline:com-chilipeppr-widget-grbl", ["chilipeppr_ready", "jquerycookie
                     that.hideBody(evt);
                 }
             });
-            $('#com-chilipeppr-widget-grbl .grbl-feedhold').click(function() {
+            $('#com-chilipeppr-widget-grbl-yg .grbl-feedhold').click(function() {
                 //console.log("GRBL: feedhold");
                 that.sendCode('!');
                 // announce to other widgets that user hit e-stop
                 chilipeppr.publish('/com-chilipeppr-interface-cnccontroller/plannerpause', "");
                 chilipeppr.publish("/com-chilipeppr-interface-cnccontroller/feedhold", "");
             });
-            $('#com-chilipeppr-widget-grbl .grbl-cyclestart').click(function() {
+            $('#com-chilipeppr-widget-grbl-yg .grbl-cyclestart').click(function() {
                 //console.log("GRBL: cyclestart");
                 that.sendCode('~');
                 //may want to check if buffer queue is >128 before resuming planner.
                 chilipeppr.publish('/com-chilipeppr-interface-cnccontroller/plannerresume', ""); 
             });
             
-            $('#com-chilipeppr-widget-grbl .grbl-verbose').click(function() {
+            $('#com-chilipeppr-widget-grbl-yg .grbl-verbose').click(function() {
                 //console.log("GRBL: manual status update");
-                $('#com-chilipeppr-widget-grbl .grbl-verbose').toggleClass("enabled");
+                $('#com-chilipeppr-widget-grbl-yg .grbl-verbose').toggleClass("enabled");
             });
             
-            $('#com-chilipeppr-widget-grbl .grbl-reset').click(function() {
+            $('#com-chilipeppr-widget-grbl-yg .grbl-reset').click(function() {
                 //console.log("GRBL: reset");
                 that.sendCode(String.fromCharCode(24));
                 chilipeppr.publish('/com-chilipeppr-interface-cnccontroller/plannerresume', "");
@@ -365,7 +365,7 @@ cpdefine("inline:com-chilipeppr-widget-grbl", ["chilipeppr_ready", "jquerycookie
 
             $('#com-chilipeppr-widget-grbl-btnoptions').click(this.showConfigModal.bind(this));
             
-            $('#com-chilipeppr-widget-grbl .btn-toolbar .btn').popover({
+            $('#com-chilipeppr-widget-grbl-yg .btn-toolbar .btn').popover({
                 delay: 500,
                 animation: true,
                 placement: "auto",
@@ -463,7 +463,7 @@ cpdefine("inline:com-chilipeppr-widget-grbl", ["chilipeppr_ready", "jquerycookie
             chilipeppr.publish('/com-chilipeppr-interface-cnccontroller/status',this.status);
             $('.com-chilipeppr-grbl-state').text(this.status);
             this.version = "";
-            $('#com-chilipeppr-widget-grbl .panel-title').text("GRBL");
+            $('#com-chilipeppr-widget-grbl-yg .panel-title').text("GRBL");
             this.offsets = {"x": 0.000, "y": 0.000, "z": 0.000};
             this.last_machine= {"x":0.000, "y": 0.000, "z": 0.000};
             this.last_work = {"x":0.000, "y": 0.000, "z": 0.000};
@@ -626,7 +626,7 @@ cpdefine("inline:com-chilipeppr-widget-grbl", ["chilipeppr_ready", "jquerycookie
                     
                     chilipeppr.publish("/com-chilipeppr-widget-gcode/stop", true); //stops gcode widget since grbl just reset.
                     this.version = msg.split(" ")[1];
-                    $('#com-chilipeppr-widget-grbl .panel-title').text("GRBL (" + this.version + ")"); //update ui  
+                    $('#com-chilipeppr-widget-grbl-yg .panel-title').text("GRBL (" + this.version + ")"); //update ui  
                 }
                 else if(msg.search(/^\$[0-9][0-9]*=/g) >= 0){ //is a config report ($0=,$1=...etc)
                     var tmp = msg.split(/ (.+)/); //break out config and description
@@ -789,7 +789,7 @@ cpdefine("inline:com-chilipeppr-widget-grbl", ["chilipeppr_ready", "jquerycookie
             this.err_log[i] = line.toString() + " - " + msg;
         },
         forkSetup: function () {
-            var topCssSelector = '#com-chilipeppr-widget-grbl';
+            var topCssSelector = '#com-chilipeppr-widget-grbl-yg';
             
             //$(topCssSelector + ' .fork').prop('href', this.fiddleurl);
             //$(topCssSelector + ' .standalone').prop('href', this.url);
@@ -812,7 +812,7 @@ cpdefine("inline:com-chilipeppr-widget-grbl", ["chilipeppr_ready", "jquerycookie
             // http://raw.githubusercontent.com/chilipeppr/widget-pubsubviewer/master/auto-generated-widget.html
             chilipeppr.load("http://raw.githubusercontent.com/chilipeppr/widget-pubsubviewer/master/auto-generated-widget.html", function () {
                 require(['inline:com-chilipeppr-elem-pubsubviewer'], function (pubsubviewer) {
-                    pubsubviewer.attachTo($('#com-chilipeppr-widget-grbl .panel-heading .dropdown-menu'), that);
+                    pubsubviewer.attachTo($('#com-chilipeppr-widget-grbl-yg .panel-heading .dropdown-menu'), that);
                 });
             });
             
@@ -947,7 +947,7 @@ cpdefine("inline:com-chilipeppr-widget-grbl", ["chilipeppr_ready", "jquerycookie
 </head>
 
 <body>
-    <div id="com-chilipeppr-widget-grbl" class="panel panel-default">
+    <div id="com-chilipeppr-widget-grbl-yg" class="panel panel-default">
     <div class="panel-heading">
         <div class="btn-toolbar pull-right" role="toolbar" >
             <div class="btn-group">
@@ -975,7 +975,7 @@ cpdefine("inline:com-chilipeppr-widget-grbl", ["chilipeppr_ready", "jquerycookie
         </div>
         <span class="panel-title" data-toggle="popover">GRBL v2</span>
     </div>
-    <div id="com-chilipeppr-widget-grbl-body" class="panel-body">
+    <div id="com-chilipeppr-widget-grbl-yg-body" class="panel-body">
         <div id="grbl-buffer-warning" style="color:red;font-size:12px;text-align:center;">
             You must connect to your GRBL device using the GRBL buffer algorithm in this workspace.  Connecting to any other buffer (default, tinyg, etc) will cause unpredictable behavior.<br/><br/>
         </div>

@@ -1,12 +1,12 @@
 /* CSS for ChiliPeppr Widget */
 
-#com-chilipeppr-widget-grbl-body {
+#com-chilipeppr-widget-grbl-yg-body {
     /*padding:0; */
 }
 .com-chilipeppr-interface-cnccontroller-stat .col {
     padding:0 10px 0 0;
 }
-#com-chilipeppr-widget-grbl-body{
+#com-chilipeppr-widget-grbl-yg-body{
     font-size:12px;
 }
 .com-chilipeppr-interface-cnccontroller-stat .col:last-child {
@@ -30,7 +30,7 @@
     font-size:12px;
 }
 
-#com-chilipeppr-widget-grbl .enabled{
+#com-chilipeppr-widget-grbl-yg .enabled{
     background-color: #CCFF99;
 }
 
